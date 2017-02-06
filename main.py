@@ -16,6 +16,12 @@
 #
 import webapp2
 import cgi
+import re
+
+
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+PASSWPRD_RE = re.compile(r"[a-zA-Z0-9_-]{6,20}$")
+EMAIL_RE = re.compile(r"[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+\.[a-zA-Z0-9]$")
 
 header = """
 <!DOCTYPE html>
@@ -30,8 +36,7 @@ header = """
 	<body>
 """
 body = """
-<h1>Signup</h1>
-
+<h2>Signup</h2>
 <form method="post">
 <table>
 <tbody>
@@ -39,7 +44,7 @@ body = """
         <td><label for="username">Username</label></td>
             <td>
                 <input name="username" type="text" value="%(username)s" required>
-                <span class="error"></span>
+                <span class="error">%(username_error)s</span>
             </td>
     </tr>
     <br>
@@ -47,7 +52,7 @@ body = """
         <td><label for="password">Password</label></td>
             <td>
                 <input name="password" type="password" value="%(password)s" required>
-                <span class="error"></span>
+                <span class="error">%(password_error)s</span>
             </td>
     </tr>
     <br>
@@ -55,7 +60,7 @@ body = """
         <td><label for="v_password">Verify Password</label></td>
             <td>
                 <input name="v_password" type="password" value="%(v_password)s" required>
-                <span class="error"></span>
+                <span class="error">%(v_password_error)s</span>
             </td>
     </tr>
     <br>
@@ -63,7 +68,7 @@ body = """
         <td><label for="email">E-mail (optional)</label></td>
             <td>
                 <input name="username" type="text" value="%(email)s">
-                <span class="error"></span>
+                <span class="error">%(email_error)s</span>
             </td>
     </tr>
 
@@ -78,30 +83,46 @@ footer = """
 </html>
 """
 
-def excape_html(s):
+def escape_html(s):
     return cgi.escape(s, quote = True)
 
 def valid_username(username):
-    pass
+    return USER_RE.match(username)
 
 def valid_password(password):
-    pass
+    return PASSWPRD_RE.match(password)
 
-def valid_v_password(v_password):
-    pass
+def valid_v_password(password, v_password):
+    if password == v_password:
+        return True
 
 def valid_email(email):
-    pass
+    if not email:
+        return True
+    return EMAIL_RE.match(email)
 
 class MainHandler(webapp2.RequestHandler):
 
-    def write_form(self, username="",password="",v_password="",email=""):
+    def write_form(
+        self, username="",
+        password="",
+        v_password="",
+        email="",
+        username_error="",
+        password_error="",
+        v_password_error="",
+        email_error=""
+        ):
 
         parameters = {
         'username':username,
         'password':password,
         'v_password':v_password,
         'email':email,
+        'username_error':username_error,
+        'password_error':password_error,
+        'v_password_error':v_password_error,
+        'email_error':email_error
         }
 
         form = header + body + footer
@@ -117,7 +138,34 @@ class MainHandler(webapp2.RequestHandler):
         v_password = self.request.get('v_password')
         email = self.request.get('email')
 
-        self.write_form(username,password,v_password,email)
+        username_error=""
+        password_error=""
+        v_password_error=""
+        email_error=""
+
+        validUsername = valid_username(username)
+        if not validUsername:
+            username_error += "Invalid username"
+
+        validPassword = valid_password(password)
+        if not validPassword:
+            password_error += "Invalid password"
+
+        validV_password = valid_v_password(password,v_password)
+        if not validV_password:
+            v_password_error += "Passwords do not match"
+
+        validEmail = valid_email(email)
+
+        if not validEmail:
+            email_error += "Invalid email"
+
+        if not (validUsername and validPassword and validV_password and validEmail):
+            self.write_form(username,password,v_password,email,username_error,password_error,v_password_error,email_error)
+
+        else:
+            self.response.out.write("Those are valid parameters! Thank you!")
+
 
 
 app = webapp2.WSGIApplication([
