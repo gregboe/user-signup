@@ -43,7 +43,7 @@ body = """
     <tr>
         <td><label for="username">Username</label></td>
             <td>
-                <input name="username" type="text" value="%(username)s" required>
+                <input name="username" type="text" value="%(username)s">
                 <span class="error">%(username_error)s</span>
             </td>
     </tr>
@@ -51,7 +51,7 @@ body = """
     <tr>
         <td><label for="password">Password</label></td>
             <td>
-                <input name="password" type="password" value="%(password)s" required>
+                <input name="password" type="password" value="%(password)s">
                 <span class="error">%(password_error)s</span>
             </td>
     </tr>
@@ -59,7 +59,7 @@ body = """
     <tr>
         <td><label for="v_password">Verify Password</label></td>
             <td>
-                <input name="v_password" type="password" value="%(v_password)s" required>
+                <input name="v_password" type="password" value="%(v_password)s">
                 <span class="error">%(v_password_error)s</span>
             </td>
     </tr>
@@ -87,10 +87,12 @@ def escape_html(s):
     return cgi.escape(s, quote = True)
 
 def valid_username(username):
-    return USER_RE.match(username)
+    if username:
+        return USER_RE.match(username)
 
 def valid_password(password):
-    return PASSWPRD_RE.match(password)
+    if password:
+        return PASSWPRD_RE.match(password)
 
 def valid_v_password(password, v_password):
     if password == v_password:
@@ -166,7 +168,7 @@ class MainHandler(webapp2.RequestHandler):
             self.write_form(username,password,v_password,email,username_error,password_error,v_password_error,email_error)
 
         else:
-            self.response.out.write("Those are valid parameters! Thank you!")
+            self.response.out.write("Welcome, " + username)
 
 
 
