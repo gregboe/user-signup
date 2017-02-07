@@ -21,7 +21,7 @@ import re
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 PASSWPRD_RE = re.compile(r"[a-zA-Z0-9_-]{6,20}$")
-EMAIL_RE = re.compile(r"[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+\.[a-zA-Z0-9]$")
+EMAIL_RE = re.compile(r"[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$")
 
 header = """
 <!DOCTYPE html>
@@ -67,7 +67,7 @@ body = """
     <tr>
         <td><label for="email">E-mail (optional)</label></td>
             <td>
-                <input name="username" type="text" value="%(email)s">
+                <input name="email" type="text" value="%(email)s">
                 <span class="error">%(email_error)s</span>
             </td>
     </tr>
@@ -99,6 +99,7 @@ def valid_v_password(password, v_password):
 def valid_email(email):
     if not email:
         return True
+
     return EMAIL_RE.match(email)
 
 class MainHandler(webapp2.RequestHandler):
@@ -152,6 +153,7 @@ class MainHandler(webapp2.RequestHandler):
             password_error += "Invalid password"
 
         validV_password = valid_v_password(password,v_password)
+
         if not validV_password:
             v_password_error += "Passwords do not match"
 
